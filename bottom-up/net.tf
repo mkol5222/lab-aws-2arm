@@ -1,7 +1,7 @@
 
 
 module "net" {
-    source = "./net"
+  source = "./net"
 
 
   // --- VPC Network Configuration ---

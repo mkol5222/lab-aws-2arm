@@ -33,14 +33,15 @@ module "cpfw" {
     // --- Auto Scaling Configuration ---
     minimum_group_size = 2
     maximum_group_size = 3
-    target_groups = ["arn:aws:tg1/abc123", "arn:aws:tg2/def456"]
+    // target_groups = ["arn:aws:tg1/abc123", "arn:aws:tg2/def456"]
+    target_groups = module.gateway_load_balancer[*].target_group_arn
 
     // --- Check Point Settings ---
     gateway_version = "R82-BYOL"
-    admin_shell = "/etc/cli.sh"
+    admin_shell = "/bin/bash"
     gateway_password_hash = ""
     gateway_maintenance_mode_password_hash = "" # For R81.10 and below the gateway_password_hash is used also as maintenance-mode password.
-    gateway_SICKey = "12345678"
+    gateway_SICKey = local.gateway_SICKey
     enable_instance_connect = false
     allow_upload_download = true
     enable_cloudwatch = false

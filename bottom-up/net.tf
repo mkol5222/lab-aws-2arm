@@ -26,6 +26,6 @@ module "net" {
   }
   subnets_bit_length = 8
 
-  availability_zones = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
+  availability_zones = var.availability_zones
   number_of_AZs      = 3
 }

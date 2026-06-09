@@ -1,5 +1,8 @@
 
 module "gateway_load_balancer" {
+
+    depends_on = [module.net]
+
   source = "../modules/load_balancer"
 
   load_balancers_type = "gateway"
@@ -12,7 +15,7 @@ module "gateway_load_balancer" {
     x-chkp-management = local.management_server
     x-chkp-template = local.configuration_template
   }
-  vpc_id = module.net.vpc_id
+  vpc_id = module.net.vpcid
   load_balancer_protocol = "GENEVE"
   target_group_port = 6081
   listener_port = 6081

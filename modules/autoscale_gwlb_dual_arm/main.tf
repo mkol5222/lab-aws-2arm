@@ -60,7 +60,8 @@ resource "aws_security_group" "permissive_sg" {
 resource "aws_launch_template" "asg_launch_template" {
   name_prefix = local.asg_name
   # image_id = module.amis.ami_id
-  image_id = "ami-09cb628948e5da4b1"
+  # image_id = "ami-09cb628948e5da4b1"
+  image_id = "ami-0348887d3658708bb"
   instance_type = var.gateway_instance_type
   key_name = var.key_name
 

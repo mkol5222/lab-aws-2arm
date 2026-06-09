@@ -1,0 +1,19 @@
+{
+  "features": {
+    "ghcr.io/devcontainers-extra/features/direnv-asdf:2": {
+      "version": "2.0.16",
+      "resolved": "ghcr.io/devcontainers-extra/features/direnv-asdf@sha256:c8d0be6f7f9d1ab0cdcc68f8f561f97a434bd7e467c4c36db4480c5c67585256",
+      "integrity": "sha256:c8d0be6f7f9d1ab0cdcc68f8f561f97a434bd7e467c4c36db4480c5c67585256"
+    },
+    "ghcr.io/devcontainers-extra/features/terraform-asdf:2": {
+      "version": "2.0.16",
+      "resolved": "ghcr.io/devcontainers-extra/features/terraform-asdf@sha256:736e79044de16774f396e2e3c3425a98909f856ace6ab2a9007e7d071a62acc8",
+      "integrity": "sha256:736e79044de16774f396e2e3c3425a98909f856ace6ab2a9007e7d071a62acc8"
+    },
+    "ghcr.io/devcontainers/features/aws-cli:1": {
+      "version": "1.1.4",
+      "resolved": "ghcr.io/devcontainers/features/aws-cli@sha256:1f93c8315b7a6d76982ebb2269f8b0d50413fc0f965c032edf4aee0caceb73ef",
+      "integrity": "sha256:1f93c8315b7a6d76982ebb2269f8b0d50413fc0f965c032edf4aee0caceb73ef"
+    }
+  }
+}

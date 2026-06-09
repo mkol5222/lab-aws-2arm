@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terraform Module Hierarchy Report</title>
+  <style>
+    :root {
+      --bg: #f5efe6;
+      --panel: #fffaf3;
+      --panel-strong: #ffffff;
+      --ink: #1e2836;
+      --muted: #5f6c7b;
+      --line: rgba(188, 160, 116, 0.6);
+      --shadow: 0 16px 34px rgba(30, 40, 54, 0.08);
+      --root: #dbeafe;
+      --module: #dcfce7;
+      --leaf: #fef3c7;
+      --helper: #fae8ff;
+      --data: #fee2e2;
+      --accent: #0f766e;
+      --accent-2: #92400e;
+      --radius: 18px;
+      --mono: "SFMono-Regular", Consolas, monospace;
+      --sans: "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
+        radial-gradient(circle at top right, rgba(146, 64, 14, 0.12), transparent 22%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    .page {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 28px 20px 42px;
+    }
+
+    .hero,
+    .panel,
+    .meta-card,
+    .info-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, rgba(255, 250, 243, 0.96), rgba(255, 255, 255, 0.92));
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    h2,
+    h3 {
+      margin-top: 0;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .hero p,
+    .subtle {
+      color: var(--muted);
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .meta-card,
+    .info-card {
+      padding: 14px 16px;
+      background: var(--panel-strong);
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .mono,
+    code {
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(251, 245, 234, 0.95));
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 40, 54, 0.08);
+      background: rgba(255, 255, 255, 0.82);
+      font-size: 13px;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(30, 40, 54, 0.14);
+    }
+
+    .note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(15, 118, 110, 0.08);
+      border: 1px solid rgba(15, 118, 110, 0.16);
+      color: #0f5a54;
+      line-height: 1.6;
+    }
+
+    .warning {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      background: rgba(146, 64, 14, 0.08);
+      border: 1px solid rgba(146, 64, 14, 0.18);
+      color: #7c3a10;
+      line-height: 1.6;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(188, 160, 116, 0.4);
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(245, 239, 230, 0.92);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .section-gap {
+      margin-top: 24px;
+    }
+
+    ul {
+      margin: 10px 0 0;
+      padding-left: 20px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px 12px 28px;
+      }
+
+      .hero,
+      .panel {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>Terraform Module Hierarchy Report</h1>
+      <p>
+        This report maps the active configuration hierarchy starting from the root <code>main.tf</code> in this workspace.
+        It follows the modules that are actually instantiated from the root and summarizes the resource groups each branch owns.
+      </p>
+      <div class="meta">
+        <div class="meta-card">
+          <span class="label">Root File</span>
+          <span class="mono">/workspaces/lab-aws-2arm/main.tf</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">Top-Level Modules</span>
+          <span class="mono">module.lab, module.test_instances</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">Root Deployment Shape</span>
+          <span class="mono">3 AZs, 3 public, 3 private, 3 tgw subnets</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">Report Scope</span>
+          <span class="mono">Hierarchy and resource ownership, not runtime state</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <h2>Hierarchy Map</h2>
+        <p class="subtle">
+          The tree below starts from the root module, expands the nested modules reached from <code>main.tf</code>,
+          and groups the main resource families under each module boundary.
+        </p>
+        <svg viewBox="0 0 1320 1160" role="img" aria-label="Terraform module hierarchy tree">
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"></path>
+            </marker>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="8" stdDeviation="8" flood-opacity="0.12"></feDropShadow>
+            </filter>
+          </defs>
+
+          <rect x="20" y="20" width="1280" height="1120" rx="28" fill="#fff9ef" stroke="#cfb98f"></rect>
+
+          <rect x="445" y="40" width="430" height="84" rx="18" fill="#dbeafe" stroke="#5b7db1" filter="url(#shadow)"></rect>
+          <text x="660" y="74" text-anchor="middle" font-size="28" font-weight="700" fill="#1e2836">root module</text>
+          <text x="660" y="99" text-anchor="middle" font-size="15" fill="#496275">main.tf: provider aws + module.lab + module.test_instances</text>
+
+          <rect x="120" y="190" width="470" height="108" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="145" y="225" font-size="24" font-weight="700" fill="#1e2836">module.lab</text>
+          <text x="145" y="251" font-size="15" fill="#496275">source = ./modules/tgw_gwlb_dual_arm_master</text>
+          <text x="145" y="274" font-size="14" fill="#496275">Root orchestrator for VPC + TGW/GWLB stack</text>
+
+          <rect x="730" y="190" width="470" height="108" rx="18" fill="#fef3c7" stroke="#c9971d" filter="url(#shadow)"></rect>
+          <text x="755" y="225" font-size="24" font-weight="700" fill="#1e2836">module.test_instances</text>
+          <text x="755" y="251" font-size="15" fill="#496275">source = ./modules/test-instances</text>
+          <text x="755" y="274" font-size="14" fill="#496275">Small Ubuntu test fleet in TGW-named subnets</text>
+
+          <line x1="660" y1="124" x2="355" y2="190" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="660" y1="124" x2="965" y2="190" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <rect x="55" y="370" width="300" height="120" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="78" y="405" font-size="22" font-weight="700" fill="#1e2836">module.launch_vpc</text>
+          <text x="78" y="430" font-size="14" fill="#496275">source = ../vpc</text>
+          <text x="78" y="454" font-size="13" fill="#496275">Creates base VPC, IGW, public subnets,</text>
+          <text x="78" y="474" font-size="13" fill="#496275">private subnets, TGW subnets, public RT</text>
+
+          <rect x="390" y="370" width="300" height="120" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="413" y="405" font-size="22" font-weight="700" fill="#1e2836">module.tgw_gwlb</text>
+          <text x="413" y="430" font-size="14" fill="#496275">source = ../tgw_gwlb_dual_arm</text>
+          <text x="413" y="454" font-size="13" fill="#496275">Builds GWLBe subnets, management subnet,</text>
+          <text x="413" y="474" font-size="13" fill="#496275">endpoint route tables, GWLB endpoints</text>
+
+          <line x1="260" y1="298" x2="205" y2="370" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="420" y1="298" x2="540" y2="370" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <rect x="745" y="370" width="440" height="120" rx="18" fill="#fee2e2" stroke="#bb6b6b" filter="url(#shadow)"></rect>
+          <text x="770" y="405" font-size="22" font-weight="700" fill="#1e2836">module.test_instances leaf resources</text>
+          <text x="770" y="430" font-size="14" fill="#496275">data.aws_subnet.selected, data.aws_ami.ubuntu</text>
+          <text x="770" y="454" font-size="13" fill="#496275">aws_security_group.test_instances</text>
+          <text x="770" y="474" font-size="13" fill="#496275">aws_instance.test_instances (for_each by AZ)</text>
+
+          <line x1="965" y1="298" x2="965" y2="370" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <rect x="40" y="560" width="330" height="160" rx="18" fill="#fef3c7" stroke="#c9971d" filter="url(#shadow)"></rect>
+          <text x="62" y="595" font-size="22" font-weight="700" fill="#1e2836">vpc resources</text>
+          <text x="62" y="622" font-size="13" fill="#496275">aws_vpc.vpc</text>
+          <text x="62" y="642" font-size="13" fill="#496275">aws_internet_gateway.igw</text>
+          <text x="62" y="662" font-size="13" fill="#496275">aws_subnet.public_subnets</text>
+          <text x="62" y="682" font-size="13" fill="#496275">aws_subnet.private_subnets</text>
+          <text x="62" y="702" font-size="13" fill="#496275">aws_subnet.tgw_subnets</text>
+          <text x="62" y="722" font-size="13" fill="#496275">aws_route_table.public_subnet_rtb + public routes</text>
+
+          <line x1="205" y1="490" x2="205" y2="560" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <rect x="395" y="560" width="290" height="112" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="418" y="595" font-size="22" font-weight="700" fill="#1e2836">module.gwlb</text>
+          <text x="418" y="620" font-size="14" fill="#496275">source = ../gwlb_dual_arm</text>
+          <text x="418" y="644" font-size="13" fill="#496275">Composes load balancer, gateway ASG,</text>
+          <text x="418" y="664" font-size="13" fill="#496275">endpoint service, and management server</text>
+
+          <rect x="395" y="700" width="290" height="160" rx="18" fill="#fef3c7" stroke="#c9971d" filter="url(#shadow)"></rect>
+          <text x="418" y="735" font-size="22" font-weight="700" fill="#1e2836">tgw_gwlb resources</text>
+          <text x="418" y="762" font-size="13" fill="#496275">aws_subnet.gwlbe_subnet1..4</text>
+          <text x="418" y="782" font-size="13" fill="#496275">aws_subnet.management_subnet</text>
+          <text x="418" y="802" font-size="13" fill="#496275">aws_route_table.private/gwlbe/management</text>
+          <text x="418" y="822" font-size="13" fill="#496275">aws_vpc_endpoint.gwlb_endpoint1..4</text>
+          <text x="418" y="842" font-size="13" fill="#496275">aws_route_table.tgw_attachment_subnet1..4</text>
+
+          <line x1="540" y1="490" x2="540" y2="560" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="540" y1="490" x2="540" y2="700" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <rect x="760" y="560" width="240" height="120" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="782" y="595" font-size="20" font-weight="700" fill="#1e2836">module.gateway_load_balancer</text>
+          <text x="782" y="620" font-size="13" fill="#496275">source = ../load_balancer</text>
+          <text x="782" y="644" font-size="13" fill="#496275">LB, target group, listener, random_id</text>
+
+          <rect x="1030" y="560" width="240" height="120" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="1052" y="595" font-size="20" font-weight="700" fill="#1e2836">module.autoscale_gwlb</text>
+          <text x="1052" y="620" font-size="13" fill="#496275">source = ../autoscale_gwlb_dual_arm</text>
+          <text x="1052" y="644" font-size="13" fill="#496275">Gateway ASG, Lambda, EventBridge, IAM</text>
+
+          <rect x="895" y="720" width="240" height="120" rx="18" fill="#dcfce7" stroke="#5d9b7c" filter="url(#shadow)"></rect>
+          <text x="917" y="755" font-size="20" font-weight="700" fill="#1e2836">module.management</text>
+          <text x="917" y="780" font-size="13" fill="#496275">source = ../management</text>
+          <text x="917" y="804" font-size="13" fill="#496275">Management SG, ENI, EIP, LT, instance</text>
+
+          <rect x="760" y="880" width="240" height="112" rx="18" fill="#fae8ff" stroke="#9b5de5" filter="url(#shadow)"></rect>
+          <text x="782" y="915" font-size="20" font-weight="700" fill="#1e2836">module.amis</text>
+          <text x="782" y="940" font-size="13" fill="#496275">AMI lookup helper used by management</text>
+          <text x="782" y="960" font-size="13" fill="#496275">and autoscale child branches</text>
+
+          <rect x="1030" y="880" width="240" height="112" rx="18" fill="#fae8ff" stroke="#9b5de5" filter="url(#shadow)"></rect>
+          <text x="1052" y="915" font-size="20" font-weight="700" fill="#1e2836">module.cme_iam_role_gwlb</text>
+          <text x="1052" y="940" font-size="13" fill="#496275">IAM role, IAM policies, attachments,</text>
+          <text x="1052" y="960" font-size="13" fill="#496275">instance profile for management GWLB mode</text>
+
+          <line x1="685" y1="616" x2="760" y2="616" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="685" y1="616" x2="1030" y2="616" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="685" y1="616" x2="895" y2="720" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <line x1="1135" y1="680" x2="1135" y2="880" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+          <line x1="1015" y1="840" x2="880" y2="880" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow)"></line>
+
+          <text x="1115" y="708" font-size="12" fill="#496275">nested helper branch</text>
+          <text x="875" y="862" font-size="12" fill="#496275">AMI helper branch</text>
+        </svg>
+        <div class="legend">
+          <span class="chip"><span class="swatch" style="background: var(--root)"></span>Root entrypoint</span>
+          <span class="chip"><span class="swatch" style="background: var(--module)"></span>Instantiated module</span>
+          <span class="chip"><span class="swatch" style="background: var(--leaf)"></span>Owned resource group</span>
+          <span class="chip"><span class="swatch" style="background: var(--helper)"></span>Nested helper module</span>
+          <span class="chip"><span class="swatch" style="background: var(--data)"></span>Leaf data/resource branch</span>
+        </div>
+        <div class="note">
+          This map intentionally follows the modules referenced from the root execution path. Validation helpers defined in various <code>variables.tf</code>
+          files are not expanded here unless they materially affect the main runtime hierarchy.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Root Summary</h2>
+        <div class="cards">
+          <div class="info-card">
+            <h3>module.lab</h3>
+            <p class="mono">./modules/tgw_gwlb_dual_arm_master</p>
+            <p>Primary infrastructure composition module. It delegates base networking to <code>../vpc</code> and inspection fabric to <code>../tgw_gwlb_dual_arm</code>.</p>
+          </div>
+          <div class="info-card">
+            <h3>module.test_instances</h3>
+            <p class="mono">./modules/test-instances</p>
+            <p>Small leaf module consuming subnet IDs from <code>module.lab</code> to place one minimal Ubuntu instance in each requested TGW subnet.</p>
+          </div>
+          <div class="info-card">
+            <h3>Current Root Inputs</h3>
+            <p>Three availability zones are active, <code>management_deploy = true</code>, and the TGW subnet map resolves to IDs for <code>eu-north-1a</code>, <code>eu-north-1b</code>, and <code>eu-north-1c</code>.</p>
+          </div>
+        </div>
+
+        <div class="warning">
+          The hierarchy in this report is based on configuration wiring. Some branches contain conditional resources or conditional child modules,
+          especially inside the GWLB and management branches. The diagram reflects the active path implied by your current root inputs rather than every optional branch in the repository.
+        </div>
+
+        <h2 class="section-gap">Module Breakdown</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Module Path</th>
+                <th>Source</th>
+                <th>Child Modules</th>
+                <th>Main Resources / Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="mono">root</td>
+                <td class="mono">main.tf</td>
+                <td class="mono">module.lab, module.test_instances</td>
+                <td>Entry module. Supplies VPC topology, GWLB settings, management settings, and passes TGW subnet IDs to the test instance module.</td>
+              </tr>
+              <tr>
+                <td class="mono">module.lab</td>
+                <td class="mono">./modules/tgw_gwlb_dual_arm_master</td>
+                <td class="mono">module.launch_vpc, module.tgw_gwlb</td>
+                <td>Composition layer that stitches VPC outputs into the GWLB/TGW fabric inputs.</td>
+              </tr>
+              <tr>
+                <td class="mono">module.lab.module.launch_vpc</td>
+                <td class="mono">../vpc</td>
+                <td class="mono">none</td>
+                <td>Base VPC, internet gateway, public/private/TGW subnet sets, and public route table associations.</td>
+              </tr>
+              <tr>
+                <td class="mono">module.lab.module.tgw_gwlb</td>
+                <td class="mono">../tgw_gwlb_dual_arm</td>
+                <td class="mono">module.gwlb</td>
+                <td>Creates GWLBe subnets, management subnet, management route table, GWLB endpoints, and TGW attachment route tables.</td>
+              </tr>
+              <tr>
+                <td class="mono">module.lab.module.tgw_gwlb.module.gwlb</td>
+                <td class="mono">../gwlb_dual_arm</td>
+                <td class="mono">module.gateway_load_balancer, module.autoscale_gwlb, module.management</td>
+                <td>Mid-layer that exposes the GWLB endpoint service and composes the gateway autoscaling and management branches.</td>
+              </tr>
+              <tr>
+                <td class="mono">...module.gateway_load_balancer</td>
+                <td class="mono">../load_balancer</td>
+                <td class="mono">none</td>
+                <td>Owns the gateway load balancer, target group, listener, and naming seed.</td>
+              </tr>
+              <tr>
+                <td class="mono">...module.autoscale_gwlb</td>
+                <td class="mono">../autoscale_gwlb_dual_arm</td>
+                <td class="mono">module.amis, module.attach_cloudwatch_policy</td>
+                <td>Owns gateway security group, launch template, autoscaling group, Lambda multi-ENI automation, EventBridge hooks, IAM, and scaling alarms.</td>
+              </tr>
+              <tr>
+                <td class="mono">...module.management</td>
+                <td class="mono">../management</td>
+                <td class="mono">module.amis, module.cme_iam_role_gwlb</td>
+                <td>Owns management security group, external ENI, EIP, launch template, management instance, and GWLB-specific IAM helper module.</td>
+              </tr>
+              <tr>
+                <td class="mono">module.test_instances</td>
+                <td class="mono">./modules/test-instances</td>
+                <td class="mono">none</td>
+                <td>Resolves Ubuntu AMI and target subnets, then creates one shared security group and a per-AZ EC2 instance set.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2 class="section-gap">Leaf Resource Notes</h2>
+        <ul>
+          <li>The VPC branch is the only place that creates the foundational subnet IDs later consumed by every other branch.</li>
+          <li>The TGW/GWLB branch owns the inspection routing layer: GWLB endpoint subnets, endpoint resources, and TGW attachment route tables.</li>
+          <li>The GWLB child branch splits cleanly into three concerns: load balancer service plane, autoscaled gateways, and management server.</li>
+          <li>The test instance module is intentionally separate from the GWLB stack and depends only on exported VPC ID and TGW subnet ID map outputs from <code>module.lab</code>.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

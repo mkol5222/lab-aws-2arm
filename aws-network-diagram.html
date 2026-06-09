@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AWS Network Diagram - lab-aws-2arm</title>
+  <style>
+    :root {
+      --bg: #f4efe4;
+      --panel: #fffaf1;
+      --panel-strong: #ffffff;
+      --ink: #1d2433;
+      --muted: #566074;
+      --accent: #0f766e;
+      --accent-2: #9a3412;
+      --public: #dbeafe;
+      --private: #dcfce7;
+      --inspect: #fde68a;
+      --mgmt: #fee2e2;
+      --test: #e9d5ff;
+      --warning: #7c2d12;
+      --line: rgba(207, 185, 143, 0.8);
+      --shadow: 0 18px 40px rgba(29, 36, 51, 0.08);
+      --radius: 18px;
+      --mono: "SFMono-Regular", Consolas, monospace;
+      --sans: "Segoe UI", "Helvetica Neue", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(154, 52, 18, 0.14), transparent 24%),
+        var(--bg);
+      color: var(--ink);
+      font-family: var(--sans);
+    }
+
+    .page {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 28px 20px 42px;
+    }
+
+    .hero,
+    .panel,
+    .meta-card,
+    .flow,
+    .info-card,
+    .sg-card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+    }
+
+    .hero {
+      padding: 28px;
+      margin-bottom: 24px;
+      background: linear-gradient(135deg, rgba(255, 250, 241, 0.96), rgba(255, 255, 255, 0.94));
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(32px, 5vw, 52px);
+      line-height: 1;
+      letter-spacing: -0.03em;
+    }
+
+    h2,
+    h3 {
+      margin-top: 0;
+      letter-spacing: -0.02em;
+    }
+
+    p {
+      margin: 0;
+      line-height: 1.6;
+    }
+
+    .hero p {
+      max-width: 980px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .meta-card {
+      padding: 14px 16px;
+    }
+
+    .label {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .value,
+    code,
+    .mono {
+      font-family: var(--mono);
+      font-size: 13px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.7fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 20px;
+    }
+
+    .subtle {
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(251, 245, 234, 0.95));
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(29, 36, 51, 0.08);
+      background: rgba(255, 255, 255, 0.78);
+      font-size: 13px;
+    }
+
+    .swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(29, 36, 51, 0.15);
+    }
+
+    .warning,
+    .note {
+      margin-top: 16px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      line-height: 1.6;
+    }
+
+    .warning {
+      background: rgba(245, 158, 11, 0.13);
+      border: 1px solid rgba(154, 52, 18, 0.22);
+      color: var(--warning);
+    }
+
+    .note {
+      background: rgba(15, 118, 110, 0.08);
+      border: 1px solid rgba(15, 118, 110, 0.16);
+      color: #0f5a54;
+    }
+
+    .grid-2,
+    .cards {
+      display: grid;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .grid-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cards {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .flow,
+    .info-card,
+    .sg-card {
+      padding: 16px;
+      background: var(--panel-strong);
+    }
+
+    .flow p,
+    .info-card p,
+    .sg-card p {
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    .path {
+      margin-top: 10px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(15, 118, 110, 0.07);
+      white-space: pre-line;
+      font-family: var(--mono);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: var(--panel-strong);
+    }
+
+    table {
+      width: 100%;
+      min-width: 700px;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid rgba(207, 185, 143, 0.55);
+      font-size: 14px;
+    }
+
+    th {
+      background: rgba(244, 239, 228, 0.9);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+
+    .section-gap {
+      margin-top: 24px;
+    }
+
+    @media (max-width: 1180px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 16px 12px 28px;
+      }
+
+      .hero,
+      .panel {
+        padding: 16px;
+      }
+
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <h1>AWS Network Diagram</h1>
+      <p>
+        Shareable single-file report generated from the current Terraform state in this workspace. It captures the deployed VPC,
+        subnet tiers, route intent, Gateway Load Balancer inspection chain, management access path, and the three TGW test instances.
+      </p>
+      <div class="meta">
+        <div class="meta-card">
+          <span class="label">Region</span>
+          <span class="value">eu-north-1</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">VPC</span>
+          <span class="value">chkp-VPC / vpc-02a1c71e6c21171a4 / 10.0.0.0/16</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">Internet Gateway</span>
+          <span class="value">igw-05e40bd87dc961942</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">GWLB Service</span>
+          <span class="value">vpce-svc-0c9f2cfe94723ad63</span>
+        </div>
+        <div class="meta-card">
+          <span class="label">Generated</span>
+          <span class="value">2026-06-09</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="layout">
+      <div class="panel">
+        <h2>Topology Map</h2>
+        <p class="subtle">
+          Public and management traffic use the Internet Gateway. The TGW test subnets instead route default traffic into per-AZ
+          Gateway Load Balancer endpoints, which forward into the Gateway Load Balancer hosted in the private subnet tier.
+        </p>
+        <svg viewBox="0 0 1200 980" role="img" aria-label="AWS network topology diagram">
+          <defs>
+            <marker id="arrow-teal" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#0f766e"></path>
+            </marker>
+            <marker id="arrow-rust" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+              <path d="M0,0 L0,6 L9,3 z" fill="#9a3412"></path>
+            </marker>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="10" stdDeviation="10" flood-opacity="0.12"></feDropShadow>
+            </filter>
+          </defs>
+
+          <rect x="24" y="24" width="1152" height="932" rx="28" fill="#fff9ef" stroke="#cfb98f"></rect>
+          <rect x="150" y="48" width="900" height="68" rx="16" fill="#fff7d6" stroke="#cfb98f" filter="url(#shadow)"></rect>
+          <text x="600" y="77" text-anchor="middle" font-size="30" font-weight="700" fill="#1d2433">Internet / External Access</text>
+          <text x="600" y="100" text-anchor="middle" font-size="14" fill="#566074">Management ingress and public subnet default routes use the same IGW</text>
+
+          <rect x="500" y="148" width="200" height="68" rx="16" fill="#ffe6c7" stroke="#9a3412" filter="url(#shadow)"></rect>
+          <text x="600" y="178" text-anchor="middle" font-size="24" font-weight="700" fill="#7c2d12">IGW</text>
+          <text x="600" y="199" text-anchor="middle" font-size="13" fill="#7c2d12">igw-05e40bd87dc961942</text>
+
+          <rect x="70" y="246" width="1060" height="664" rx="24" fill="#fffdf8" stroke="#cfb98f"></rect>
+          <text x="100" y="280" font-size="26" font-weight="700" fill="#1d2433">VPC chkp-VPC</text>
+          <text x="100" y="303" font-size="14" fill="#566074">vpc-02a1c71e6c21171a4 / 10.0.0.0/16</text>
+
+          <rect x="96" y="330" width="290" height="134" rx="18" fill="#dbeafe" stroke="#5b7db1"></rect>
+          <text x="116" y="360" font-size="22" font-weight="700" fill="#1d2433">Public subnets</text>
+          <text x="116" y="387" font-size="14" fill="#334155">eu-north-1a: 10.0.1.0/24</text>
+          <text x="116" y="409" font-size="14" fill="#334155">eu-north-1b: 10.0.2.0/24</text>
+          <text x="116" y="431" font-size="14" fill="#334155">eu-north-1c: 10.0.3.0/24</text>
+          <text x="116" y="452" font-size="13" fill="#475569">Route table: rtb-028b71ac37c97d1ce</text>
+
+          <rect x="420" y="330" width="328" height="134" rx="18" fill="#fee2e2" stroke="#bb6b6b"></rect>
+          <text x="440" y="360" font-size="22" font-weight="700" fill="#1d2433">Management subnet</text>
+          <text x="440" y="387" font-size="14" fill="#334155">10.0.55.0/24 in eu-north-1a</text>
+          <text x="440" y="409" font-size="14" fill="#334155">Instance: CP-Management-gwlb-tf</text>
+          <text x="440" y="431" font-size="14" fill="#334155">10.0.55.104 / public 13.63.230.173</text>
+          <text x="440" y="452" font-size="13" fill="#475569">Route table: rtb-02cab27d86d235579</text>
+
+          <rect x="782" y="330" width="314" height="134" rx="18" fill="#dcfce7" stroke="#5d9b7c"></rect>
+          <text x="802" y="360" font-size="22" font-weight="700" fill="#1d2433">Private subnets</text>
+          <text x="802" y="387" font-size="14" fill="#334155">eu-north-1a: 10.0.9.0/24</text>
+          <text x="802" y="409" font-size="14" fill="#334155">eu-north-1b: 10.0.10.0/24</text>
+          <text x="802" y="431" font-size="14" fill="#334155">eu-north-1c: 10.0.11.0/24</text>
+          <text x="802" y="452" font-size="13" fill="#475569">GWLB resides across these private subnets</text>
+
+          <rect x="250" y="530" width="700" height="138" rx="20" fill="#fef3c7" stroke="#d4a72c"></rect>
+          <text x="600" y="564" text-anchor="middle" font-size="26" font-weight="700" fill="#1d2433">Gateway Load Balancer inspection layer</text>
+          <text x="600" y="592" text-anchor="middle" font-size="14" fill="#5f4b00">GWLB: chkp-gwlb-tf-LB-209a89baaf719031</text>
+          <text x="600" y="614" text-anchor="middle" font-size="14" fill="#5f4b00">Private subnets: 10.0.9.0/24, 10.0.10.0/24, 10.0.11.0/24</text>
+          <text x="600" y="636" text-anchor="middle" font-size="14" fill="#5f4b00">Target group: GENEVE 6081 / health check TCP 8117</text>
+
+          <rect x="96" y="708" width="314" height="152" rx="18" fill="#fde68a" stroke="#d4a72c"></rect>
+          <text x="116" y="740" font-size="22" font-weight="700" fill="#1d2433">GWLBe subnet + endpoint</text>
+          <text x="116" y="768" font-size="14" fill="#334155">eu-north-1a: 10.0.14.0/24 / vpce-0a49296106def1c4e</text>
+          <text x="116" y="790" font-size="14" fill="#334155">eu-north-1b: 10.0.24.0/24 / vpce-01113db9c993f664c</text>
+          <text x="116" y="812" font-size="14" fill="#334155">eu-north-1c: 10.0.34.0/24 / vpce-09645b0e8b294bb05</text>
+          <text x="116" y="834" font-size="13" fill="#475569">Route table: rtb-08fc8344ddbe93cb2</text>
+
+          <rect x="444" y="708" width="344" height="152" rx="18" fill="#e9d5ff" stroke="#8b5fbf"></rect>
+          <text x="464" y="740" font-size="22" font-weight="700" fill="#1d2433">TGW / test subnets</text>
+          <text x="464" y="768" font-size="14" fill="#334155">eu-north-1a: 10.0.5.0/24 / test 10.0.5.11</text>
+          <text x="464" y="790" font-size="14" fill="#334155">eu-north-1b: 10.0.6.0/24 / test 10.0.6.214</text>
+          <text x="464" y="812" font-size="14" fill="#334155">eu-north-1c: 10.0.7.0/24 / test 10.0.7.193</text>
+          <text x="464" y="834" font-size="13" fill="#475569">Default routes point to same-AZ GWLB endpoints</text>
+
+          <rect x="824" y="708" width="272" height="152" rx="18" fill="#fff1f2" stroke="#bb6b6b"></rect>
+          <text x="844" y="740" font-size="22" font-weight="700" fill="#1d2433">Gateway ASG state</text>
+          <text x="844" y="768" font-size="14" fill="#334155">ASG: chkp-asg-tf20260609085421992200000013</text>
+          <text x="844" y="790" font-size="14" fill="#334155">Desired: 0 / Min: 0 / Max: 10</text>
+          <text x="844" y="812" font-size="14" fill="#334155">Targets attached through GWLB target group</text>
+          <text x="844" y="834" font-size="13" fill="#7c2d12">No active gateway instances in state</text>
+
+          <line x1="600" y1="116" x2="600" y2="148" stroke="#9a3412" stroke-width="4" marker-end="url(#arrow-rust)"></line>
+          <line x1="560" y1="216" x2="250" y2="330" stroke="#9a3412" stroke-width="3" marker-end="url(#arrow-rust)"></line>
+          <line x1="600" y1="216" x2="584" y2="330" stroke="#9a3412" stroke-width="3" marker-end="url(#arrow-rust)"></line>
+          <line x1="870" y1="397" x2="740" y2="530" stroke="#0f766e" stroke-width="3.5" marker-end="url(#arrow-teal)"></line>
+          <line x1="590" y1="464" x2="600" y2="530" stroke="#9a3412" stroke-width="3.5" marker-end="url(#arrow-rust)"></line>
+          <line x1="600" y1="668" x2="600" y2="708" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow-teal)"></line>
+          <line x1="410" y1="784" x2="444" y2="784" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow-teal)"></line>
+          <line x1="788" y1="784" x2="824" y2="784" stroke="#0f766e" stroke-width="4" marker-end="url(#arrow-teal)"></line>
+
+          <text x="914" y="512" font-size="13" fill="#0f766e">GENEVE 6081</text>
+          <text x="611" y="691" font-size="13" fill="#0f766e">per-AZ GWLB endpoint</text>
+          <text x="448" y="772" font-size="13" fill="#0f766e">default route</text>
+        </svg>
+        <div class="legend">
+          <span class="chip"><span class="swatch" style="background: var(--public)"></span>Public and management egress use IGW</span>
+          <span class="chip"><span class="swatch" style="background: var(--private)"></span>Private inspection fabric hosts the GWLB</span>
+          <span class="chip"><span class="swatch" style="background: var(--inspect)"></span>GWLBe subnets host the GWLB endpoints</span>
+          <span class="chip"><span class="swatch" style="background: var(--test)"></span>TGW test subnets host the Ubuntu instances</span>
+        </div>
+        <div class="warning">
+          The inspection plane is provisioned, but the autoscaling group behind the Gateway Load Balancer currently has desired capacity 0.
+          In this state snapshot, there are no active gateway instances registered behind the GWLB target group.
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Key Flows</h2>
+        <p class="subtle">These paths come directly from the route tables, associations, endpoints, and instance placement in Terraform state.</p>
+        <div class="grid-2">
+          <div class="flow">
+            <h3>Management access</h3>
+            <p>Administrative traffic reaches the management server directly through the Internet Gateway because the management subnet is IGW-routed.</p>
+            <div class="path">Internet
+-> IGW igw-05e40bd87dc961942
+-> Management subnet 10.0.55.0/24
+-> CP-Management-gwlb-tf 10.0.55.104 / 13.63.230.173</div>
+          </div>
+          <div class="flow">
+            <h3>Public subnet behavior</h3>
+            <p>The original public subnet tier keeps its own shared public route table and goes straight to the Internet Gateway.</p>
+            <div class="path">Public subnets 10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24
+-> Route table rtb-028b71ac37c97d1ce
+-> 0.0.0.0/0 to IGW</div>
+          </div>
+          <div class="flow">
+            <h3>Test instance egress</h3>
+            <p>Each TGW test subnet has a dedicated default route to a same-AZ Gateway Load Balancer endpoint instead of a direct internet path.</p>
+            <div class="path">Test instance in 10.0.5.0/24, 10.0.6.0/24 or 10.0.7.0/24
+-> Same-AZ GWLB endpoint in 10.0.14.0/24, 10.0.24.0/24 or 10.0.34.0/24
+-> Gateway Load Balancer inspection layer</div>
+          </div>
+          <div class="flow">
+            <h3>Inspection chain status</h3>
+            <p>The service plane is deployed end to end, but the current state does not show active inspection appliances behind the GWLB.</p>
+            <div class="path">GWLB endpoint service vpce-svc-0c9f2cfe94723ad63
+-> GWLB target group chkp-gwlb-tf-TG-209a89baaf719031
+-> ASG desired 0 / min 0 / max 10
+-> No active gateway instances in state</div>
+          </div>
+        </div>
+
+        <div class="note">
+          The Terraform state contains the subnets named <code>tgw_subnets</code> and their inspection-oriented route tables, but it does not contain an
+          <code>aws_ec2_transit_gateway_vpc_attachment</code> resource. In the currently deployed state, these subnets are visible as the source tier feeding the GWLB endpoints.
+        </div>
+
+        <h2 class="section-gap">Security Groups</h2>
+        <div class="cards">
+          <div class="sg-card">
+            <h3>Management SG</h3>
+            <p class="mono">sg-0740af25bd84ee32b</p>
+            <p>Inbound allows TCP 22, 257, 443, 18190-18192, 18208, 18210, 18211, 18221, 18264, and 19009 from 0.0.0.0/0. Egress is unrestricted.</p>
+          </div>
+          <div class="sg-card">
+            <h3>Gateway ASG SG</h3>
+            <p class="mono">sg-0ae6587ba1fdd96b1</p>
+            <p>Permissive security group with all inbound and outbound allowed. Present even though the gateway autoscaling group is scaled to zero.</p>
+          </div>
+          <div class="sg-card">
+            <h3>Test instances SG</h3>
+            <p class="mono">sg-08840cd16b2af2ffd</p>
+            <p>No ingress rules. Egress allows all destinations. Serial console access is out-of-band and is not controlled by the security group.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel section-gap">
+      <h2>Routing Summary</h2>
+      <p class="subtle">Each subnet tier inherits its behavior from the associated route table recorded in Terraform state.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Subnet tier</th>
+              <th>Subnets</th>
+              <th>Associated route table</th>
+              <th>Effective default path</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Public</td>
+              <td class="mono">10.0.1.0/24, 10.0.2.0/24, 10.0.3.0/24</td>
+              <td class="mono">rtb-028b71ac37c97d1ce</td>
+              <td class="mono">0.0.0.0/0 -> IGW igw-05e40bd87dc961942</td>
+            </tr>
+            <tr>
+              <td>Management</td>
+              <td class="mono">10.0.55.0/24</td>
+              <td class="mono">rtb-02cab27d86d235579</td>
+              <td class="mono">0.0.0.0/0 -> IGW igw-05e40bd87dc961942</td>
+            </tr>
+            <tr>
+              <td>Private / GWLB hosting</td>
+              <td class="mono">10.0.9.0/24, 10.0.10.0/24, 10.0.11.0/24</td>
+              <td class="mono">rtb-0e5f06a1c5164422f</td>
+              <td class="mono">No explicit default route captured in state</td>
+            </tr>
+            <tr>
+              <td>GWLBe endpoints</td>
+              <td class="mono">10.0.14.0/24, 10.0.24.0/24, 10.0.34.0/24</td>
+              <td class="mono">rtb-08fc8344ddbe93cb2</td>
+              <td class="mono">No explicit default route captured in state</td>
+            </tr>
+            <tr>
+              <td>TGW / test subnet eu-north-1a</td>
+              <td class="mono">10.0.5.0/24</td>
+              <td class="mono">rtb-03753f3654cf4b24a</td>
+              <td class="mono">0.0.0.0/0 -> GWLB endpoint vpce-0a49296106def1c4e</td>
+            </tr>
+            <tr>
+              <td>TGW / test subnet eu-north-1b</td>
+              <td class="mono">10.0.6.0/24</td>
+              <td class="mono">rtb-09477a583d4f892db</td>
+              <td class="mono">0.0.0.0/0 -> GWLB endpoint vpce-01113db9c993f664c</td>
+            </tr>
+            <tr>
+              <td>TGW / test subnet eu-north-1c</td>
+              <td class="mono">10.0.7.0/24</td>
+              <td class="mono">rtb-02a4183ca4e83d2b0</td>
+              <td class="mono">0.0.0.0/0 -> GWLB endpoint vpce-09645b0e8b294bb05</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel section-gap">
+      <h2>Instances and Services</h2>
+      <div class="cards">
+        <div class="info-card">
+          <h3>CP-Management-gwlb-tf</h3>
+          <p class="mono">i-0c74c63dc50e9457c</p>
+          <p>m5.xlarge in management subnet <span class="mono">10.0.55.0/24</span><br>Private IP <span class="mono">10.0.55.104</span><br>Public IP <span class="mono">13.63.230.173</span></p>
+        </div>
+        <div class="info-card">
+          <h3>test-instance-eu-north-1a</h3>
+          <p class="mono">i-0a506eefd7a8cb1a0</p>
+          <p>t3.micro in subnet <span class="mono">10.0.5.0/24</span><br>Private IP <span class="mono">10.0.5.11</span><br>No public IP</p>
+        </div>
+        <div class="info-card">
+          <h3>test-instance-eu-north-1b</h3>
+          <p class="mono">i-08ea28f521fe43307</p>
+          <p>t3.micro in subnet <span class="mono">10.0.6.0/24</span><br>Private IP <span class="mono">10.0.6.214</span><br>No public IP</p>
+        </div>
+        <div class="info-card">
+          <h3>test-instance-eu-north-1c</h3>
+          <p class="mono">i-00754a0df724ea970</p>
+          <p>t3.micro in subnet <span class="mono">10.0.7.0/24</span><br>Private IP <span class="mono">10.0.7.193</span><br>No public IP</p>
+        </div>
+        <div class="info-card">
+          <h3>Gateway Load Balancer</h3>
+          <p class="mono">chkp-gwlb-tf-LB-209a89baaf719031</p>
+          <p>Type gateway with cross-zone load balancing enabled. Placed in private subnets <span class="mono">10.0.9.0/24</span>, <span class="mono">10.0.10.0/24</span>, and <span class="mono">10.0.11.0/24</span>.</p>
+        </div>
+        <div class="info-card">
+          <h3>GWLB endpoint service</h3>
+          <p class="mono">vpce-svc-0c9f2cfe94723ad63</p>
+          <p>Service name <span class="mono">com.amazonaws.vpce.eu-north-1.vpce-svc-0c9f2cfe94723ad63</span> with three consumer endpoints, one in each GWLBe subnet.</p>
+        </div>
+        <div class="info-card">
+          <h3>Gateway autoscaling group</h3>
+          <p class="mono">chkp-asg-tf20260609085421992200000013</p>
+          <p>Placement spans private subnets in all three AZs. Current desired capacity is <span class="mono">0</span>, minimum <span class="mono">0</span>, maximum <span class="mono">10</span>.</p>
+        </div>
+        <div class="info-card">
+          <h3>GWLB target group</h3>
+          <p class="mono">chkp-gwlb-tf-TG-209a89baaf719031</p>
+          <p>Target type instance, transport <span class="mono">GENEVE 6081</span>, health check <span class="mono">TCP 8117</span>.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</html>

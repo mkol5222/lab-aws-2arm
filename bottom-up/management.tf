@@ -58,7 +58,8 @@ module "management" {
   management_name = local.management_server
   management_instance_type =  "m5.xlarge"
   key_name = var.sshkey_name
-  allocate_and_associate_eip = true
+  ip_mode = "IPv4"
+    allocate_and_associate_eip = true
    
   volume_size                  = 200
   enable_instance_connect      = false

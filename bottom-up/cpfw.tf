@@ -31,8 +31,8 @@ module "cpfw" {
     }
 
     // --- Auto Scaling Configuration ---
-    minimum_group_size = 2
-    maximum_group_size = 3
+    minimum_group_size = 1
+    maximum_group_size = 2
     // target_groups = ["arn:aws:tg1/abc123", "arn:aws:tg2/def456"]
     target_groups = module.gateway_load_balancer[*].target_group_arn
 

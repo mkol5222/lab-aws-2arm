@@ -66,7 +66,7 @@ module "management" {
   disable_instance_termination = false
   allow_upload_download        = true
   admin_shell                  = "/bin/bash"
-  volume_encryption = true
+  volume_encryption = false
 
   metadata_imdsv2_required = true
   management_version = "R82-BYOL"

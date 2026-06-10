@@ -42,3 +42,8 @@ output "gateway_instance_public_ips" {
   description = "Public IP addresses (EIPs) associated with gateway ASG instance ENIs"
   value       = data.aws_eips.gateway_eips.public_ips
 }
+
+output "gwlb_service_name" {
+  description = "Gateway Load Balancer endpoint service name"
+  value       = aws_vpc_endpoint_service.gwlb_endpoint_service.service_name
+}

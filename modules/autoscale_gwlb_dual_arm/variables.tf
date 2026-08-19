@@ -178,6 +178,18 @@ variable "ip_mode" {
     error_message = "The ip_mode value must be one of: IPv4 or DualStack."
   }
 }
+variable "s3_bucket" {
+  type        = string
+  description = "S3 bucket name containing the Lambda handler code loaded by the S3 bootstrap."
+  default     = "cgi-cfts-staging"
+}
+
+variable "s3_key" {
+  type        = string
+  description = "S3 object key of the Lambda handler code."
+  default     = "gwlb/dual_arm_lifecycle_handler.py"
+}
+
 variable "lambda_auto_update" {
   type = bool
   description = "When true, the Lambda function will always check for the newest version from S3 on each execution and update the environment variable. When false (default), the Lambda will pin to the latest version on first run and stay with it."

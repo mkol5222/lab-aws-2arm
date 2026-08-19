@@ -24,7 +24,7 @@ variable "ip_mode" {
 variable "availability_zones" {
   type        = list(string)
   description = "List of availability zones to use for the VPC"
-  default     = ["eu-north-1a", "eu-north-1b", "eu-north-1c"]
+  default     = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
 }
 
 variable "management_subnet_cidr" {

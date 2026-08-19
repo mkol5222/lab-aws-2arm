@@ -44,4 +44,8 @@ module "cpfw" {
   allow_upload_download                  = true
   enable_cloudwatch                      = false
   gateway_bootstrap_script               = "echo 'this is bootstrap script' > /home/admin/bootstrap.txt"
+
+  // --- Lambda S3 handler source ---
+  s3_bucket = var.s3_bucket
+  s3_key    = var.s3_key
 }

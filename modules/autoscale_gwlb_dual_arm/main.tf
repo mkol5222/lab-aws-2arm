@@ -296,7 +296,7 @@ resource "aws_iam_role_policy" "lambda_multi_eni_policy" {
           "s3:GetObject",
           "s3:GetObjectVersion"
         ]
-        Resource = "arn:aws:s3:::cgi-cfts-staging/gwlb/dual_arm_lifecycle_handler.py"
+        Resource = "arn:aws:s3:::${var.s3_bucket}/${var.s3_key}"
       },
       {
         # Allow Lambda to update its own config to pin S3 code version
@@ -325,8 +325,8 @@ resource "aws_lambda_function" "multi_eni_lambda" {
     variables = {
       PUBLIC_SUBNETS = jsonencode(var.gateways_public_subnets)
       PRIVATE_SUBNETS = jsonencode(var.gateways_private_subnets)
-      S3_BUCKET = "cgi-cfts-staging"
-      S3_KEY = "gwlb/dual_arm_lifecycle_handler.py"
+      S3_BUCKET = var.s3_bucket
+      S3_KEY    = var.s3_key
       LAMBDA_AUTO_UPDATE = tostring(var.lambda_auto_update)
       IPAM_POOL_ID = var.ipam_pool_id
     }

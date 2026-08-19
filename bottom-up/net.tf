@@ -7,21 +7,21 @@ module "net" {
   // --- VPC Network Configuration ---
   vpc_cidr = "10.0.0.0/16"
   public_subnets_map = {
-    "eu-north-1a" = 1
-    "eu-north-1b" = 2
-    "eu-north-1c" = 3
+    "eu-central-1a" = 1
+    "eu-central-1b" = 2
+    "eu-central-1c" = 3
 
   }
   private_subnets_map = {
-    "eu-north-1a" = 9
-    "eu-north-1b" = 10
-    "eu-north-1c" = 11
+    "eu-central-1a" = 9
+    "eu-central-1b" = 10
+    "eu-central-1c" = 11
 
   }
   tgw_subnets_map = {
-    "eu-north-1a" = 5
-    "eu-north-1b" = 6
-    "eu-north-1c" = 7
+    "eu-central-1a" = 5
+    "eu-central-1b" = 6
+    "eu-central-1c" = 7
 
   }
   subnets_bit_length = 8

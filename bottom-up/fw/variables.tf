@@ -43,6 +43,16 @@ variable "configuration_template" {
   description = "Configuration template tag value"
 }
 
+variable "s3_bucket" {
+  type        = string
+  description = "S3 bucket holding the Lambda handler code"
+}
+
+variable "s3_key" {
+  type        = string
+  description = "S3 key of the Lambda handler code"
+}
+
 variable "enable_cross_zone_load_balancing" {
   type        = bool
   description = "Whether to enable cross-zone load balancing"

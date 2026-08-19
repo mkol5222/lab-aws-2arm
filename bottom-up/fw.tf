@@ -1,7 +1,7 @@
 module "fw" {
   source = "./fw"
 
-  depends_on = [module.net]
+  depends_on = [module.net, module.s3-lambda-cp-2arm]
 
   deployment_prefix          = local.deployment_prefix
   vpc_id                     = module.net.vpcid
@@ -15,4 +15,7 @@ module "fw" {
 
   enable_cross_zone_load_balancing = var.enable_cross_zone_load_balancing
   ip_mode                          = var.ip_mode
+
+  s3_bucket = module.s3-lambda-cp-2arm.bucket_name
+  s3_key    = module.s3-lambda-cp-2arm.object_key
 }
